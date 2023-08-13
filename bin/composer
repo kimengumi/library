@@ -1,0 +1,48 @@
+#!/bin/bash
+#
+# Composer wrapper : Start composer with fixed versions (PHP & composer)
+#
+# The "composer.phar" is cached locally within the vendor directory (avoid commit of the full phar inside a project)
+#
+#
+# Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
+# the European Commission - subsequent versions of the EUPL (the "Licence");
+# You may not use this work except in compliance with the Licence.
+# You may obtain a copy of the Licence at:
+#
+# https://joinup.ec.europa.eu/software/page/eupl
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the Licence is distributed on an "AS IS" basis,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the Licence for the specific language governing permissions and
+# limitations under the Licence.
+#
+# @author Antonio Rossetti <antonio@rossetti.fr>
+# @copyright since 2023 Antonio Rossetti
+# @license <https://joinup.ec.europa.eu/software/page/eupl> EUPL
+#
+
+# Config
+PHP_VERSION='8.2'          # x.y only
+COMPOSER_VERSION='2.5.8' # x.y.z get version number from https://getcomposer.org/download/#composer-history-caption
+VENDOR_DIR='../vendor/'    # relative to the current script
+
+# Script start here
+DIR="$(dirname $(readlink -f $0 2>/dev/null || perl -MCwd=realpath -e "print realpath '$0'"))/${VENDOR_DIR}"
+PHAR="${DIR}/composer.${COMPOSER_VERSION}.phar"
+
+if [ ! -e ${PHAR} ]; then
+    mkdir -p ${DIR} || exit 1
+    if ! [ -x "$(command -v wget)" ]; then
+        echo "wget is not installed." >&2
+        exit 1
+    fi
+    wget -O ${PHAR} https://getcomposer.org/download/${COMPOSER_VERSION}/composer.phar
+fi
+
+if ! [ -x "$(command -v php${PHP_VERSION})" ]; then
+    echo "php${PHP_VERSION} is not installed." >&2
+    exit 1
+fi
+php${PHP_VERSION} ${PHAR} "$@"
