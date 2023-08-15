@@ -20,12 +20,24 @@
  * @license <https://joinup.ec.europa.eu/software/page/eupl> EUPL
  */
 
-namespace App;
+namespace App\Repository;
 
-use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
-use Symfony\Component\HttpKernel\Kernel as BaseKernel;
+use App\Entity\ItemDescription;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
 
-class Kernel extends BaseKernel
+/**
+ * @extends ServiceEntityRepository<ItemDescription>
+ *
+ * @method ItemDescription|null find( $id, $lockMode = null, $lockVersion = null )
+ * @method ItemDescription|null findOneBy( array $criteria, array $orderBy = null )
+ * @method ItemDescription[]    findAll()
+ * @method ItemDescription[]    findBy( array $criteria, array $orderBy = null, $limit = null, $offset = null )
+ */
+class ItemDescriptionRepository extends ServiceEntityRepository
 {
-    use MicroKernelTrait;
+    public function __construct( ManagerRegistry $registry )
+    {
+        parent::__construct( $registry, ItemDescription::class );
+    }
 }

@@ -18,20 +18,24 @@
 # @copyright since 2023 Antonio Rossetti
 # @license <https://joinup.ec.europa.eu/software/page/eupl> EUPL
 #}
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>{% block title %}{% endblock %} - Kimengumi Library</title>
-    {% block stylesheets %}
-        {{ encore_entry_link_tags('app') }}
-    {% endblock %}
+{% extends 'base.html.twig' %}
 
-    {% block javascripts %}
-        {{ encore_entry_script_tags('app') }}
-    {% endblock %}
-</head>
-<body>
-{% block body %}{% endblock %}
-</body>
-</html>
+{% block title %}Hello LoginController!{% endblock %}
+
+{% block body %}
+    {% if error %}
+        <div>{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+    {% endif %}
+
+    <form action="{{ path('app_login') }}" method="post">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="_username" value="{{ last_username }}">
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="_password">
+        
+        <input type="hidden" name="_target_path" value="/">
+
+        <button type="submit">login</button>
+    </form>
+{% endblock %}

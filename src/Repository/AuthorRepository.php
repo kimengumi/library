@@ -20,12 +20,24 @@
  * @license <https://joinup.ec.europa.eu/software/page/eupl> EUPL
  */
 
-namespace App;
+namespace App\Repository;
 
-use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
-use Symfony\Component\HttpKernel\Kernel as BaseKernel;
+use App\Entity\Author;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
 
-class Kernel extends BaseKernel
+/**
+ * @extends ServiceEntityRepository<Author>
+ *
+ * @method Author|null find( $id, $lockMode = null, $lockVersion = null )
+ * @method Author|null findOneBy( array $criteria, array $orderBy = null )
+ * @method Author[]    findAll()
+ * @method Author[]    findBy( array $criteria, array $orderBy = null, $limit = null, $offset = null )
+ */
+class AuthorRepository extends ServiceEntityRepository
 {
-    use MicroKernelTrait;
+    public function __construct( ManagerRegistry $registry )
+    {
+        parent::__construct( $registry, Author::class );
+    }
 }
