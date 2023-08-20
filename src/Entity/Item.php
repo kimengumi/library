@@ -29,6 +29,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity( repositoryClass: ItemRepository::class )]
+#[UniqueEntity( 'ean' )]
 class Item
 {
     #[ORM\Id]
@@ -36,14 +37,11 @@ class Item
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column( length: 13 )]
+    #[ORM\Column( name: 'ean', type: 'string', length: 13, unique: true )]
     private ?string $ean = null;
 
     #[ORM\Column( length: 255 )]
     private ?string $title = null;
-
-    #[ORM\OneToMany( mappedBy: 'items', targetEntity: Author::class )]
-    private Collection $authors;
 
     #[ORM\ManyToOne( inversedBy: 'items' )]
     private ?Publisher $publisher = null;
@@ -72,6 +70,9 @@ class Item
     #[ORM\ManyToOne( inversedBy: 'items' )]
     #[ORM\JoinColumn( nullable: false )]
     private ?Category $category = null;
+
+    #[ORM\ManyToMany( targetEntity: Author::class, inversedBy: 'items' )]
+    private Collection $authors;
 
     public function __construct()
     {
@@ -103,36 +104,6 @@ class Item
     public function setTitle( string $title ): static
     {
         $this->title = $title;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Author>
-     */
-    public function getAuthors(): Collection
-    {
-        return $this->authors;
-    }
-
-    public function addAuthor( Author $author ): static
-    {
-        if ( !$this->authors->contains( $author ) ) {
-            $this->authors->add( $author );
-            $author->setItems( $this );
-        }
-
-        return $this;
-    }
-
-    public function removeAuthor( Author $author ): static
-    {
-        if ( $this->authors->removeElement( $author ) ) {
-            // set the owning side to null (unless already changed)
-            if ( $author->getItems() === $this ) {
-                $author->setItems( null );
-            }
-        }
 
         return $this;
     }
@@ -251,6 +222,30 @@ class Item
     public function setCategory( ?Category $category ): static
     {
         $this->category = $category;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Author>
+     */
+    public function getAuthors(): Collection
+    {
+        return $this->authors;
+    }
+
+    public function addAuthor( Author $author ): static
+    {
+        if ( !$this->authors->contains( $author ) ) {
+            $this->authors->add( $author );
+        }
+
+        return $this;
+    }
+
+    public function removeAuthor( Author $author ): static
+    {
+        $this->authors->removeElement( $author );
 
         return $this;
     }

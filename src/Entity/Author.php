@@ -23,6 +23,8 @@
 namespace App\Entity;
 
 use App\Repository\AuthorRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity( repositoryClass: AuthorRepository::class )]
@@ -36,8 +38,13 @@ class Author
     #[ORM\Column( length: 255 )]
     private ?string $name = null;
 
-    #[ORM\ManyToOne( inversedBy: 'authors' )]
-    private ?Item $items = null;
+    #[ORM\ManyToMany(targetEntity: Item::class, mappedBy: 'authors')]
+    private Collection $items;
+
+    public function __construct()
+    {
+        $this->items = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -56,14 +63,29 @@ class Author
         return $this;
     }
 
-    public function getItems(): ?Item
+    /**
+     * @return Collection<int, Item>
+     */
+    public function getItems(): Collection
     {
         return $this->items;
     }
 
-    public function setItems( ?Item $items ): static
+    public function addItem(Item $item): static
     {
-        $this->items = $items;
+        if (!$this->items->contains($item)) {
+            $this->items->add($item);
+            $item->addAuthor($this);
+        }
+
+        return $this;
+    }
+
+    public function removeItem(Item $item): static
+    {
+        if ($this->items->removeElement($item)) {
+            $item->removeAuthor($this);
+        }
 
         return $this;
     }

@@ -1,5 +1,6 @@
-{#
-# Kimengumi Library
+#!/bin/bash
+#
+# NPM wrapper : Use a specific node version using NVM
 #
 # Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
 # the European Commission - subsequent versions of the EUPL (the "Licence");
@@ -17,16 +18,18 @@
 # @author Antonio Rossetti <antonio@rossetti.fr>
 # @copyright since 2023 Antonio Rossetti
 # @license <https://joinup.ec.europa.eu/software/page/eupl> EUPL
-#}
-{% extends 'base.html.twig' %}
+#
 
-{% block title %}Homepage{% endblock %}
+# Config
+NODE_VERSION='lts/hydrogen' # as of 'nvm list'
 
-{% block body %}
-    <h1 class="text-3xl font-bold underline">
-        Welcome to the library
-    </h1>
+if [ ! -s "${NVM_DIR}/nvm.sh" ]; then
+    echo "NVM not installed !"
+    echo "Please follow https://github.com/nvm-sh/nvm#installing-and-updating"
+    exit 1
+fi
 
-    <div {{ stimulus_controller('hello') }}>
-    </div>
-{% endblock %}
+#Load NVM
+source "${NVM_DIR}/nvm.sh"
+nvm use "${NODE_VERSION}" || nvm install "${NODE_VERSION}"
+npx "$@"
