@@ -74,9 +74,15 @@ class Item
     #[ORM\ManyToMany( targetEntity: Author::class, inversedBy: 'items' )]
     private Collection $authors;
 
+    #[ORM\OneToMany(mappedBy: 'item', targetEntity: UserItem::class)]
+    private Collection $userItems;
+
+
     public function __construct()
     {
         $this->authors = new ArrayCollection();
+        $this->userItems = new ArrayCollection();
+
     }
 
     public function getId(): ?int
@@ -246,6 +252,36 @@ class Item
     public function removeAuthor( Author $author ): static
     {
         $this->authors->removeElement( $author );
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, UserItem>
+     */
+    public function getUserItems(): Collection
+    {
+        return $this->userItems;
+    }
+
+    public function addUserItem(UserItem $userItem): static
+    {
+        if (!$this->userItems->contains($userItem)) {
+            $this->userItems->add($userItem);
+            $userItem->setItem($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUserItem(UserItem $userItem): static
+    {
+        if ($this->userItems->removeElement($userItem)) {
+            // set the owning side to null (unless already changed)
+            if ($userItem->getItem() === $this) {
+                $userItem->setItem(null);
+            }
+        }
 
         return $this;
     }

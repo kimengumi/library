@@ -20,10 +20,11 @@
  * @license <https://joinup.ec.europa.eu/software/page/eupl> EUPL
  */
 
-
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -31,7 +32,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity( repositoryClass: UserRepository::class )]
-#[UniqueEntity( fields: [ 'username','email' ], message: 'There is already an account with this username or email' )]
+#[UniqueEntity( fields: [ 'username', 'email', 'displayName' ], message: 'There is already an account with this username or email' )]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -51,7 +52,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?string $password = null;
 
-    #[ORM\Column(name: 'email', type: 'string', length: 255, unique: true)]
+    #[ORM\Column( name: 'email', type: 'string', length: 255, unique: true )]
     #[Assert\Email(
         message: 'The email {{ value }} is not a valid email.',
     )]
@@ -59,6 +60,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column( type: 'boolean' )]
     private $isVerified = false;
+
+    #[ORM\Column( name: 'display_name', type: 'string', length: 255, unique: true )]
+    private ?string $displayName = null;
+
+    #[ORM\OneToMany( mappedBy: 'user', targetEntity: UserItem::class )]
+    private Collection $userItems;
+
+    public function __construct()
+    {
+        $this->userItems = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -153,4 +165,48 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
+
+    public function getDisplayName(): ?string
+    {
+        return $this->displayName;
+    }
+
+    public function setDisplayName( string $displayName ): static
+    {
+        $this->displayName = $displayName;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, UserItem>
+     */
+    public function getUserItems(): Collection
+    {
+        return $this->userItems;
+    }
+
+    public function addUserItem( UserItem $userItem ): static
+    {
+        if ( !$this->userItems->contains( $userItem ) ) {
+            $this->userItems->add( $userItem );
+            $userItem->setUser( $this );
+        }
+
+        return $this;
+    }
+
+    public function removeUserItem( UserItem $userItem ): static
+    {
+        if ( $this->userItems->removeElement( $userItem ) ) {
+            // set the owning side to null (unless already changed)
+            if ( $userItem->getUser() === $this ) {
+                $userItem->setUser( null );
+            }
+        }
+
+        return $this;
+    }
+
+
 }

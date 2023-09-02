@@ -26,13 +26,17 @@ use App\Repository\CategoryRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\DBAL\Types\Types;
+use Gedmo\Mapping\Annotation as Gedmo;
+use Gedmo\Tree\Entity\Repository\NestedTreeRepository;
 
+#[Gedmo\Tree( type: 'nested' )]
 #[ORM\Entity( repositoryClass: CategoryRepository::class )]
 class Category
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
     #[ORM\Column( length: 255 )]
@@ -43,6 +47,47 @@ class Category
 
     #[ORM\OneToOne( cascade: [ 'persist', 'remove' ] )]
     private ?Item $leadingItem = null;
+
+    #[ORM\Column]
+    private bool $isSeries = false;
+
+    #[ORM\Column]
+    private bool $isFinished = false;
+
+    #[ORM\Column]
+    private bool $isStopped = false;
+
+    #[ORM\Column]
+    private int $seriesItemsCount = 0;
+
+    /*
+     * Tree
+     */
+    #[Gedmo\TreeLeft]
+    #[ORM\Column( name: 'lft', type: Types::INTEGER )]
+    private $lft;
+
+    #[Gedmo\TreeLevel]
+    #[ORM\Column( name: 'lvl', type: Types::INTEGER )]
+    private $lvl;
+
+    #[Gedmo\TreeRight]
+    #[ORM\Column( name: 'rgt', type: Types::INTEGER )]
+    private $rgt;
+
+    #[Gedmo\TreeRoot]
+    #[ORM\ManyToOne( targetEntity: Category::class )]
+    #[ORM\JoinColumn( name: 'tree_root', referencedColumnName: 'id', onDelete: 'SET NULL' )]
+    private $root;
+
+    #[Gedmo\TreeParent]
+    #[ORM\ManyToOne( targetEntity: Category::class, inversedBy: 'children' )]
+    #[ORM\JoinColumn( name: 'parent_id', referencedColumnName: 'id', onDelete: 'SET NULL' )]
+    private $parent;
+
+    #[ORM\OneToMany( targetEntity: Category::class, mappedBy: 'parent' )]
+    #[ORM\OrderBy( [ 'lft' => 'ASC' ] )]
+    private $children;
 
     public function __construct()
     {
@@ -106,5 +151,68 @@ class Category
         $this->leadingItem = $leadingItem;
 
         return $this;
+    }
+
+    public function isSeries(): ?bool
+    {
+        return $this->isSeries;
+    }
+
+    public function setIsSeries( bool $isSeries ): static
+    {
+        $this->isSeries = $isSeries;
+
+        return $this;
+    }
+
+    public function isFinished(): ?bool
+    {
+        return $this->isFinished;
+    }
+
+    public function setIsFinished( bool $isFinished ): static
+    {
+        $this->isFinished = $isFinished;
+
+        return $this;
+    }
+
+    public function isStopped(): ?bool
+    {
+        return $this->isStopped;
+    }
+
+    public function setIsStopped( bool $isStopped ): static
+    {
+        $this->isStopped = $isStopped;
+
+        return $this;
+    }
+
+    public function getSeriesItemsCount(): ?int
+    {
+        return $this->seriesItemsCount;
+    }
+
+    public function setSeriesItemsCount( int $seriesItemsCount ): static
+    {
+        $this->seriesItemsCount = $seriesItemsCount;
+
+        return $this;
+    }
+
+    public function getRoot(): ?self
+    {
+        return $this->root;
+    }
+
+    public function setParent( self $parent = null ): void
+    {
+        $this->parent = $parent;
+    }
+
+    public function getParent(): ?self
+    {
+        return $this->parent;
     }
 }
